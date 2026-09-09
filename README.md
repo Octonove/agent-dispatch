@@ -22,8 +22,12 @@ that designs the architecture. This skill makes the split explicit before anythi
 | **Bounded analysis** | summarizing a module, mapping dependencies, writing tests from a clear spec, one mechanical change across many files | **mid** (e.g. Sonnet) · medium |
 | **Judgment** | architecture, writing the code that decides how something works, choosing between options, the final review, anything that ships | **the session's model** (e.g. Fable 5.1, Opus) · high |
 
+Before any of that it asks the cheaper question first: **should this be delegated at all, and how
+many?** The default is no, and the count starts at zero — most work is inline work.
+
 Plus four guardrails the skill enforces: the final reviewer never gets cheapened; a small agent
-that fails moves the task up a tier instead of being retried; fewer agents beat more agents;
+that fails moves the task up a tier instead of being retried; fewer agents beat more agents, and
+no agent exists just to double-check another's conclusion;
 and every run **declares its split before launching and reports the measured spend after** —
 or says "not measured". No invented savings.
 

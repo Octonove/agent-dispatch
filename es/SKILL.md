@@ -1,6 +1,6 @@
 ---
 name: agent-dispatch
-description: "Regla siempre activa para cualquier cliente que pueda lanzar subagentes (Claude Code, Cursor, Antigravity…). Antes de delegar decide si hay que delegar, cómo repartir el trabajo y qué modelo y esfuerzo lleva cada subagente: por el tipo de tarea, nunca por la importancia del proyecto. Lo mecánico (traducciones, listar, medir, ejecutar scripts) va a un modelo pequeño; el análisis acotado a uno medio; diseño, código, decisiones y la revisión final se quedan en el modelo de la sesión. Declara el reparto antes de lanzar y reporta el gasto medido después."
+description: "Regla siempre activa para cualquier cliente que pueda lanzar subagentes (Claude Code, Cursor, Antigravity…). Antes de delegar decide si hay que delegar —por defecto no—, después cuántos empezando por cero, cómo repartir el trabajo y qué modelo y esfuerzo lleva cada subagente: por el tipo de tarea, nunca por la importancia del proyecto. Lo mecánico (traducciones, listar, medir, ejecutar scripts) va a un modelo pequeño; el análisis acotado a uno medio; diseño, código, decisiones y la revisión final se quedan en el modelo de la sesión. Declara el reparto antes de lanzar y reporta el gasto medido después."
 ---
 
 # Despacho de agentes — qué modelo corre cada subagente
@@ -13,18 +13,26 @@ cosa: **el gasto en agentes**. Nunca cambia el modelo de la conversación.
 
 Aplícala cada vez que un trabajo vaya a salir de la conversación. Aplícala en este orden.
 
-## 0. ¿Hay que delegar?
+## 0. ¿Hay que delegar? Por defecto, no
 
-Delega solo si se cumple una de tres:
+Delega solo si se cumple una de dos:
 
-- **partes independientes** que pueden correr en paralelo;
+- **partes independientes** que de verdad corren a la vez y ahorran tiempo de reloj;
 - **más lectura de la que cabe en un contexto** (docenas de ficheros, transcripciones,
-  resultados largos);
-- **una versión que va a terceros** y merece que la revise alguien que no la escribió.
+  resultados largos).
 
 Si no, hazlo en línea. Un subagente no ve esta conversación: cuesta su contexto entero más el
-briefing que le escribes, y su respuesta hay que verificarla igual. Nunca delegues para comprobar
-lo que un comando comprueba (`curl`, `grep`, leer un fichero): eso es trabajo en línea.
+briefing que le escribes, y su respuesta hay que verificarla igual. Dos cosas no son nunca razón
+para delegar: comprobar lo que un comando comprueba (`curl`, `grep`, leer un fichero), y pedir
+una segunda opinión sobre algo que ya está verificado — donde hay evidencia directa, manda la
+evidencia.
+
+## 0b. ¿Cuántos? Empieza por cero
+
+Cero es la respuesta normal: casi todo es trabajo en línea. Uno bien briefeado cubre casi todo lo
+que sí merece delegarse. Varios, solo cuando cada uno tiene una parcela que ningún otro cubre, y
+la nombras antes de lanzarlos. Si al escribir el reparto dos suenan parecidos, sobra uno. Una
+flota no es rigor: es la misma respuesta pagada varias veces.
 
 ## 1. Reparte el trabajo y clasifica cada parte por TIPO
 
@@ -58,8 +66,9 @@ todo lo demás (si delegar, cuántos, en qué orden, briefing, declarar, medir) 
 2. **Si un agente pequeño falla o devuelve algo dudoso, la tarea sube un nivel.** No se reintenta
    en el mismo modelo.
 3. **Menos agentes.** Un revisor con un checklist claro vale más que tres vagos. Un traductor por
-   idioma, no dos «por si acaso». Los agentes mecánicos van en pipeline, no en barrera, salvo que
-   el paso siguiente necesite todos sus resultados a la vez.
+   idioma, no dos «por si acaso». Ningún agente cuyo único trabajo sea recomprobar la conclusión
+   de otro. Los agentes mecánicos van en pipeline, no en barrera, salvo que el paso siguiente
+   necesite todos sus resultados a la vez.
 4. **Cada subagente recibe un briefing y un contrato de retorno.** No ve esta conversación, así
    que dile lo que necesita; y dile qué devolver: un veredicto, como mucho cinco hallazgos, rutas
    de fichero en vez de contenidos pegados.

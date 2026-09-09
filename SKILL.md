@@ -1,6 +1,6 @@
 ---
 name: agent-dispatch
-description: "Always-on rule for any client that can launch subagents (Claude Code, Cursor, Antigravity…). Before delegating, it decides whether to delegate at all, how to split the work, and which model and effort each subagent gets — by the type of task, never by the importance of the project. Mechanical work (translations, listing, measuring, running scripts) goes to a small model; bounded analysis to a mid model; design, code, decisions and the final review stay on the session's model. Declares the split before launching and reports the measured spend after."
+description: "Always-on rule for any client that can launch subagents (Claude Code, Cursor, Antigravity…). Before delegating, it decides whether to delegate at all — the default is no — then how many (starting at zero), how to split the work, and which model and effort each subagent gets, by the type of task and never by the importance of the project. Mechanical work (translations, listing, measuring, running scripts) goes to a small model; bounded analysis to a mid model; design, code, decisions and the final review stay on the session's model. Declares the split before launching and reports the measured spend after."
 ---
 
 # Agent Dispatch — which model runs each subagent
@@ -17,15 +17,22 @@ Apply it every time work is about to leave the conversation. Apply it in order.
 
 Delegate only if one of these holds:
 
-- **independent parts** that can run in parallel;
-- **more reading than fits in one context** (dozens of files, transcripts, long outputs);
-- **a release that goes to third parties** and deserves a review pass by someone who did not
-  write it.
+- **independent parts** that genuinely run at the same time and save wall-clock;
+- **more reading than fits in one context** (dozens of files, transcripts, long outputs).
 
 Otherwise do the work inline. A subagent does not see this conversation: it costs its whole
-context plus the briefing you write for it, and its answer still has to be verified. Never
-delegate to check something a command can check (`curl`, `grep`, reading a file): that is
-inline work.
+context plus the briefing you write for it, and its answer still has to be verified. Two things
+are never a reason to delegate: checking something a command can check (`curl`, `grep`, reading
+a file), and getting a second opinion on work that is already verified — where direct evidence
+exists, the evidence decides.
+
+## 0b. How many? Start at zero
+
+Zero is the normal answer: most work is inline work. One well-briefed subagent covers most of
+what is worth delegating at all. Several only when each one owns a slice no other one can cover
+— and you name those slices before launching. If two of them sound alike as you write the split,
+one is redundant: drop it. A fleet is not thoroughness; it is the same answer paid for several
+times.
 
 ## 1. Split the work and classify each part by TYPE
 
@@ -61,8 +68,9 @@ measure) and say so in one line.
 2. **If a small agent fails or returns something doubtful, the task moves up one tier.** It is
    not retried on the same model.
 3. **Fewer agents.** One reviewer with a clear checklist beats three vague ones. One translator
-   per language, not two "just in case". Mechanical agents run as a pipeline, not as a barrier,
-   unless the next step needs all their results at once.
+   per language, not two "just in case". No agent whose only job is to double-check another's
+   conclusion. Mechanical agents run as a pipeline, not as a barrier, unless the next step needs
+   all their results at once.
 4. **Every subagent gets a briefing and a return contract.** It does not see this conversation,
    so tell it what it needs; and tell it what to hand back — a verdict, at most five findings,
    file paths instead of pasted contents.
