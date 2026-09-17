@@ -14,6 +14,11 @@ that designs the architecture. This skill makes the split explicit before anythi
 
 ![Agent Dispatch demo](https://raw.githubusercontent.com/Octonove/agent-dispatch/main/docs/demo.gif)
 
+<!-- invokard-coffee -->
+**&#9749; If this saves you time, buy me a coffee.** [![Buy me a coffee with PayPal](https://img.shields.io/badge/PayPal-Buy%20me%20a%20coffee-00457C?logo=paypal&logoColor=white)](https://www.paypal.com/donate/?business=stradoxx%40gmail.com&no_recurring=0&currency_code=EUR&item_name=Support%20agent%20dispatch)
+
+**USDC** &middot; Solana `5n6Gfosk7SdwbvdtE9xiLWpcGPBBBGDZYRfAkWyCk86g` &middot; Ethereum (ERC-20) `0xe176866f9d7fdb498e0d4a983d3e34d84dcd6bfc`
+
 ## The rule in one table
 
 | Type of task | Examples | Model · effort |
