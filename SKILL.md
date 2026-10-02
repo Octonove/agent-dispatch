@@ -71,9 +71,19 @@ measure) and say so in one line.
    per language, not two "just in case". No agent whose only job is to double-check another's
    conclusion. Mechanical agents run as a pipeline, not as a barrier, unless the next step needs
    all their results at once.
-4. **Every subagent gets a briefing and a return contract.** It does not see this conversation,
-   so tell it what it needs; and tell it what to hand back — a verdict, at most five findings,
-   file paths instead of pasted contents.
+4. **Every subagent gets a self-contained brief and a return contract.** It does not see this
+   conversation, so what is not in the brief does not exist for it. The brief carries six
+   things: goal, minimum context (paths, decisions already made), global constraints (what
+   must not be touched, published or run), review focus (what whoever checks the result will
+   look at), output format and definition of done — a verdict, at most five findings, file
+   paths instead of pasted contents. If you can't write the brief, the task isn't ready to
+   delegate.
+5. **Every loop declares its cap.** Before any loop or review-and-fix round (agents, workflows,
+   a `/loop`), state the success condition and the maximum number of rounds. Retries have a
+   fixed cap: one retry of the same approach. A watch loop the user asked for may stay open
+   with its stop condition. When the cap is reached no new round opens: every open finding is
+   closed as fixed, parked as debt, or rejected with a reason. The cap goes on the same
+   dispatch line as the split.
 
 ## 4. Declare before, measure after
 

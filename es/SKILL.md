@@ -69,9 +69,19 @@ todo lo demás (si delegar, cuántos, en qué orden, briefing, declarar, medir) 
    idioma, no dos «por si acaso». Ningún agente cuyo único trabajo sea recomprobar la conclusión
    de otro. Los agentes mecánicos van en pipeline, no en barrera, salvo que el paso siguiente
    necesite todos sus resultados a la vez.
-4. **Cada subagente recibe un briefing y un contrato de retorno.** No ve esta conversación, así
-   que dile lo que necesita; y dile qué devolver: un veredicto, como mucho cinco hallazgos, rutas
-   de fichero en vez de contenidos pegados.
+4. **Cada subagente recibe un encargo autocontenido y un contrato de retorno.** No ve esta
+   conversación, así que lo que no está en el encargo no existe para él. El encargo lleva seis
+   cosas: objetivo, contexto mínimo (rutas y decisiones ya tomadas), restricciones globales (qué
+   no tocar, publicar ni ejecutar), foco de revisión (qué mirará quien revise el resultado),
+   formato de salida y criterio de terminado: un veredicto, como mucho cinco hallazgos, rutas de
+   fichero en vez de contenidos pegados. Si no sabes escribirlo, la tarea todavía no está lista
+   para delegarse.
+5. **Todo bucle declara su tope.** Antes de cualquier bucle o ronda de revisión y corrección
+   (agentes, flujos, un `/loop`), se fijan la condición de éxito y el máximo de rondas. Los
+   reintentos tienen tope fijo: un reintento del mismo enfoque. Un bucle de vigilancia que pide
+   el usuario puede quedar abierto con su condición de parada. Al llegar al tope no se abre otra
+   ronda: cada hallazgo abierto queda corregido, aparcado como deuda o rechazado con motivo. El
+   tope va en la misma línea del reparto.
 
 ## 4. Declara antes, mide después
 
