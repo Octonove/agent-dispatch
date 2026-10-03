@@ -35,11 +35,15 @@ Or in USDC. Send **USDC only** and **only on the network shown**; on any other n
 Before any of that it asks the cheaper question first: **should this be delegated at all, and how
 many?** The default is no, and the count starts at zero — most work is inline work.
 
-Plus four guardrails the skill enforces: the final reviewer never gets cheapened; a small agent
+Plus five guardrails the skill enforces: the final reviewer never gets cheapened; a small agent
 that fails moves the task up a tier instead of being retried; fewer agents beat more agents, and
-no agent exists just to double-check another's conclusion;
-and every run **declares its split before launching and reports the measured spend after** —
-or says "not measured". No invented savings.
+no agent exists just to double-check another's conclusion; every subagent gets a
+**self-contained brief and a return contract** (goal, minimum context, what it must not touch,
+what the reviewer will check, output format, definition of done), because it never sees your
+conversation; and **every loop declares its cap** before it starts — the success condition and
+the maximum number of rounds, one retry of the same approach at most.
+On top of that, every run **declares its split before launching and reports the measured spend
+after** — or says "not measured". No invented savings.
 
 ## Worked example: a small Chrome extension
 

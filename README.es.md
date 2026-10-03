@@ -35,11 +35,15 @@ O en USDC. Env&iacute;a **solo USDC** y **solo por la red indicada**; por otra r
 Antes de todo eso hace la pregunta barata: **¿hay que delegar, y cuántos?** Por defecto no, y la
 cuenta empieza en cero — casi todo es trabajo en línea.
 
-Más cuatro salvaguardas que la skill impone: la revisión final nunca se abarata; un agente
+Más cinco salvaguardas que la skill impone: la revisión final nunca se abarata; un agente
 pequeño que falla sube la tarea de nivel en vez de reintentarse; menos agentes valen más que más
-agentes, y ninguno existe solo para recomprobar la conclusión de otro; y cada ejecución **declara
-su reparto antes de lanzar y reporta el gasto medido después**, o dice «sin medir». Nada de
-ahorros inventados.
+agentes, y ninguno existe solo para recomprobar la conclusión de otro; cada subagente recibe un
+**encargo autocontenido y un contrato de retorno** (objetivo, contexto mínimo, qué no tocar, qué
+mirará quien revise, formato de salida y criterio de terminado), porque nunca ve tu
+conversación; y **todo bucle declara su tope** antes de empezar: la condición de éxito y el
+máximo de rondas, con un solo reintento del mismo enfoque.
+Además, cada ejecución **declara su reparto antes de lanzar y reporta el gasto medido después**,
+o dice «sin medir». Nada de ahorros inventados.
 
 ## Ejemplo trabajado: una extensión de Chrome pequeña
 
