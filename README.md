@@ -49,7 +49,9 @@ after**, or says "not measured". No invented savings.
 
 In Claude Code the tiers map to the `Agent` tool's own parameters: `model: "haiku"` or
 `model: "sonnet"` with `effort` per call (Claude Code 2.1.292 or later), and neither `model` nor
-`effort` for judgment, so it inherits both from the session. For other clients, see
+`effort` for judgment, so it inherits both from the session: use a subagent type whose definition
+sets neither, and if `CLAUDE_CODE_SUBAGENT_MODEL` is set, pass the session's alias, such as
+`model: "opus"`. For other clients, see
 [the model names per client](examples/decisions.md#model-names-per-client).
 
 ## Worked example: a small Chrome extension
@@ -125,7 +127,7 @@ started, run `/reload-skills`. A plugin installed or updated from the shell need
 
 **Make it apply every time.** A skill is not always on: Claude Code keeps only its description in
 context and loads the body when the description matches what you asked
-(`claude plugin details agent-dispatch` estimates about 170 and 2,100 tokens). To make it fire
+(`claude plugin details agent-dispatch` estimates about 170 and 2,200 tokens). To make it fire
 whenever delegation comes up, add one line to your `CLAUDE.md`:
 
 ```text

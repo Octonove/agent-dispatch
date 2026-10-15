@@ -49,7 +49,9 @@ dice «sin medir». Nada de ahorros inventados.
 
 En Claude Code los niveles se traducen en parámetros de la propia herramienta `Agent`:
 `model: "haiku"` o `model: "sonnet"` con `effort` por llamada (Claude Code 2.1.292 o
-posterior), y ni `model` ni `effort` para el juicio, que así hereda los dos de la sesión. Para otros clientes, mira
+posterior), y ni `model` ni `effort` para el juicio, que así hereda los dos de la sesión: usa un
+tipo de subagente cuya definición no fije ninguno y, si está fijado `CLAUDE_CODE_SUBAGENT_MODEL`,
+pasa el alias de la sesión, como `model: "opus"`. Para otros clientes, mira
 [los nombres de modelo por cliente](examples/decisions.es.md#nombres-de-modelo-por-cliente).
 
 ## Ejemplo trabajado: una extensión de Chrome pequeña
@@ -125,7 +127,7 @@ sesión, ejecuta `/reload-skills`. Un plugin instalado o actualizado desde la te
 
 **Que aplique siempre.** Una skill no está siempre activa: Claude Code solo mantiene su
 descripción en el contexto y carga el cuerpo cuando la descripción encaja con lo que pides
-(`claude plugin details agent-dispatch-es` estima unos 250 y 2.900 tokens). Para que salte cada
+(`claude plugin details agent-dispatch-es` estima unos 250 y 3.000 tokens). Para que salte cada
 vez que se plantea delegar, añade una línea a tu `CLAUDE.md`:
 
 ```text

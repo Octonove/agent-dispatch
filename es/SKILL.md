@@ -50,9 +50,9 @@ sea el proyecto**:
 | Analítica acotada | **medio** (Sonnet) | medio | `model: "sonnet"`, `effort: "medium"` |
 | Juicio | **el modelo de la sesión** | el de la sesión | sin `model` ni `effort` (hereda los dos) |
 
-- En Claude Code, omitir `model` da el modelo de la sesión salvo que esté fijado
-  `CLAUDE_CODE_SUBAGENT_MODEL`; entonces pasa el alias de la sesión (`model: "opus"` en una sesión
-  Opus).
+- En Claude Code, el juicio solo hereda con un tipo de subagente cuya definición no fije `model`
+  ni `effort`. Si está fijado `CLAUDE_CODE_SUBAGENT_MODEL`, pasa el alias de la sesión
+  (`model: "opus"` en una sesión Opus).
 - Los nombres son ejemplos: usa los niveles que ofrezca tu cliente. Nunca subas por encima del
   modelo de la sesión; si la sesión ya corre el modelo medio, la analítica acotada y el juicio se
   quedan los dos en él.

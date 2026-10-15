@@ -47,8 +47,9 @@ project is**:
 | Bounded analysis | **mid** (Sonnet) | medium | `model: "sonnet"`, `effort: "medium"` |
 | Judgment | **the session's model** | the session's | no `model`, no `effort` (both inherit) |
 
-- In Claude Code, omitting `model` gives the session's model unless `CLAUDE_CODE_SUBAGENT_MODEL`
-  is set; then pass the session's alias (`model: "opus"` on an Opus session).
+- In Claude Code, judgment inherits only through a subagent type whose definition sets no `model`
+  or `effort`. If `CLAUDE_CODE_SUBAGENT_MODEL` is set, pass the session's alias (`model: "opus"`
+  on an Opus session).
 - The names are examples: use the tiers your client offers. Never go above the session's model;
   if the session already runs the mid model, bounded analysis and judgment both stay on it.
 - Unsure between two tiers: take the lower one. The final review (section 7) checks it.
