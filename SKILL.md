@@ -45,8 +45,10 @@ project is**:
 |---|---|---|---|
 | Mechanical | **small** (Haiku) | low | `model: "haiku"`, `effort: "low"` |
 | Bounded analysis | **mid** (Sonnet) | medium | `model: "sonnet"`, `effort: "medium"` |
-| Judgment | **the session's model** | high | no `model` (it inherits), `effort: "high"` |
+| Judgment | **the session's model** | the session's | no `model`, no `effort` (both inherit) |
 
+- In Claude Code, omitting `model` gives the session's model unless `CLAUDE_CODE_SUBAGENT_MODEL`
+  is set; then pass the session's alias (`model: "opus"` on an Opus session).
 - The names are examples: use the tiers your client offers. Never go above the session's model;
   if the session already runs the mid model, bounded analysis and judgment both stay on it.
 - Unsure between two tiers: take the lower one. The final review (section 7) checks it.
@@ -73,7 +75,7 @@ project is**:
    isn't ready to delegate.
 5. **Every loop declares its cap.** Before any loop or review-and-fix round (agents, workflows,
    a `/loop`), state the success condition and the maximum number of rounds. At most 1 retry of
-   the same approach (rule 2 says on which model). A watch loop the user asked for may stay open
+   the same approach (guardrail 2 says on which model). A watch loop the user asked for may stay open
    with its stop condition. At the cap no new round opens: every open finding is fixed, parked as
    debt, or rejected with a reason.
 

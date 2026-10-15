@@ -48,8 +48,11 @@ sea el proyecto**:
 |---|---|---|---|
 | Mecánica | **pequeño** (Haiku) | bajo | `model: "haiku"`, `effort: "low"` |
 | Analítica acotada | **medio** (Sonnet) | medio | `model: "sonnet"`, `effort: "medium"` |
-| Juicio | **el modelo de la sesión** | alto | sin `model` (lo hereda), `effort: "high"` |
+| Juicio | **el modelo de la sesión** | el de la sesión | sin `model` ni `effort` (hereda los dos) |
 
+- En Claude Code, omitir `model` da el modelo de la sesión salvo que esté fijado
+  `CLAUDE_CODE_SUBAGENT_MODEL`; entonces pasa el alias de la sesión (`model: "opus"` en una sesión
+  Opus).
 - Los nombres son ejemplos: usa los niveles que ofrezca tu cliente. Nunca subas por encima del
   modelo de la sesión; si la sesión ya corre el modelo medio, la analítica acotada y el juicio se
   quedan los dos en él.
@@ -77,7 +80,7 @@ sea el proyecto**:
    encargo, la tarea todavía no está lista para delegarse.
 5. **Todo bucle declara su tope.** Antes de cualquier bucle o ronda de revisión y corrección
    (agentes, flujos, un `/loop`), fija la condición de éxito y el máximo de rondas. Como mucho 1
-   reintento del mismo enfoque (la regla 2 dice en qué modelo). Un bucle de vigilancia que pide el
+   reintento del mismo enfoque (la salvaguarda 2 dice en qué modelo). Un bucle de vigilancia que pide el
    usuario puede quedar abierto con su condición de parada. Al llegar al tope no se abre otra
    ronda: cada hallazgo abierto queda corregido, aparcado como deuda o rechazado con motivo.
 
