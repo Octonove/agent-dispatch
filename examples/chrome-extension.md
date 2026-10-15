@@ -69,7 +69,8 @@ goal, context, constraints, review focus, output and definition of done.
 > - **Constraints:** do not change keys, placeholders or the JSON shape; write only
 >   `_locales/fr/messages.json`.
 > - **Review focus:** the reviewer will compare the key set and the placeholders with `en`.
-> - **Output:** the path you wrote, the number of keys, and at most 5 strings you were unsure about.
+> - **Output:** a verdict (done or blocked), the path you wrote, the number of keys, and at most 5
+>   strings you were unsure about.
 > - **Done:** the file parses as JSON and has exactly the keys of `en`.
 
 **Tests from the spec (mid)**
@@ -79,7 +80,8 @@ goal, context, constraints, review focus, output and definition of done.
 >   decimal comma or point; the result is rounded to 2 decimals; an unknown currency throws.
 > - **Constraints:** do not edit `src/` and do not add dependencies.
 > - **Review focus:** one test per rule plus two edge cases; no test that just restates the code.
-> - **Output:** the path and the list of cases, one line each.
+> - **Output:** a verdict (all pass, or how many fail), the path, and the list of cases, one line
+>   each; at most 5 failing tests, with file and line.
 > - **Done:** `npm test` runs the file; failing tests are reported, not fixed.
 
 ## Step 7 — the final review, inline

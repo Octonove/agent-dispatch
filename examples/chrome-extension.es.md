@@ -69,8 +69,8 @@ objetivo, contexto, restricciones, foco de revisión, salida y criterio de termi
 > - **Restricciones:** no cambies claves, marcadores ni la forma del JSON; escribe solo
 >   `_locales/fr/messages.json`.
 > - **Foco de revisión:** quien revise comparará el conjunto de claves y los marcadores con `en`.
-> - **Salida:** la ruta escrita, el número de claves y como mucho 5 cadenas de las que no estés
->   seguro.
+> - **Salida:** un veredicto (hecho o bloqueado), la ruta escrita, el número de claves y como
+>   mucho 5 cadenas de las que no estés seguro.
 > - **Terminado:** el fichero parsea como JSON y tiene exactamente las claves de `en`.
 
 **Tests desde la especificación (medio)**
@@ -82,7 +82,8 @@ objetivo, contexto, restricciones, foco de revisión, salida y criterio de termi
 > - **Restricciones:** no edites `src/` ni añadas dependencias.
 > - **Foco de revisión:** un test por regla más dos casos límite; ningún test que solo repita el
 >   código.
-> - **Salida:** la ruta y la lista de casos, uno por línea.
+> - **Salida:** un veredicto (todo pasa, o cuántos fallan), la ruta y la lista de casos, uno por
+>   línea; como mucho 5 tests que fallan, con fichero y línea.
 > - **Terminado:** `npm test` ejecuta el fichero; los tests que fallen se reportan, no se arreglan.
 
 ## Paso 7 — la revisión final, en línea

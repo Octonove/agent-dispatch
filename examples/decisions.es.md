@@ -65,8 +65,8 @@ El encargo:
 >   `billing/auth.py`.
 > - **Restricciones:** solo lectura; no edites ficheros ni arranques servicios.
 > - **Foco de revisión:** cada salto lleva fichero y línea.
-> - **Salida:** los saltos como `file:line → file:line`, uno por línea, más como mucho 5
->   sorpresas.
+> - **Salida:** un veredicto (mapa completo o no), los saltos como `file:line → file:line`, uno
+>   por línea, más como mucho 5 sorpresas.
 > - **Terminado:** cada referencia a `SessionToken` que encuentra `grep` en `billing/` está en el
 >   mapa o explicada.
 
@@ -147,7 +147,7 @@ cliente.
 
 | Cliente | Pequeño (mecánica) | Medio (analítica acotada) | Juicio | Esfuerzo por subagente | Dónde se ve el gasto |
 |---|---|---|---|---|---|
-| Claude Code, herramienta `Agent` | `model: "haiku"` | `model: "sonnet"` | sin `model`: hereda el de la sesión | `effort` por llamada (`2.1.292`+), o `effort:` en `.claude/agents/*.md` | recuento de tokens en el resultado de cada subagente; `/usage` |
+| Claude Code, herramienta `Agent` | `model: "haiku"` | `model: "sonnet"` | sin `model` ni `effort`: hereda los dos de la sesión (salvo que esté fijado `CLAUDE_CODE_SUBAGENT_MODEL`) | `effort` por llamada (`2.1.292`+), o `effort:` en `.claude/agents/*.md` | recuento de tokens en el resultado de cada subagente; `/usage` |
 | Cursor | subagente en `.cursor/agents/<name>.md` con `model: fast` o el ID de un modelo pequeño | el mismo fichero, el ID de un modelo medio | `model: inherit` | no documentado | panel de uso, por petición |
 | Codex CLI | subagente TOML en `.codex/agents/` con `model` | igual, un modelo medio | sin `model` | `model_reasoning_effort` | sin comprobar |
 | Gemini CLI, GitHub Copilot, OpenCode | definición del subagente con un campo `model` | igual, un modelo medio | sin él, o `inherit` | no documentado | sin comprobar |

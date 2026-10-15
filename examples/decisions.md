@@ -60,7 +60,8 @@ The brief:
 > - **Context:** entry points are `billing/api/*.py`; the token class is in `billing/auth.py`.
 > - **Constraints:** read only; do not edit files or start services.
 > - **Review focus:** every hop has a file and a line.
-> - **Output:** the hops as `file:line → file:line`, one per line, plus at most 5 surprises.
+> - **Output:** a verdict (map complete or not), the hops as `file:line → file:line`, one per
+>   line, plus at most 5 surprises.
 > - **Done:** every `SessionToken` reference that `grep` finds in `billing/` is in the map or
 >   explained.
 
@@ -138,7 +139,7 @@ the others are untested, so check them against your client's version.
 
 | Client | Small (mechanical) | Mid (bounded analysis) | Judgment | Effort per subagent | Where the spend shows |
 |---|---|---|---|---|---|
-| Claude Code, `Agent` tool | `model: "haiku"` | `model: "sonnet"` | omit `model`: it inherits the session's | `effort` per call (`2.1.292`+), or `effort:` in `.claude/agents/*.md` | token count in each subagent's result; `/usage` |
+| Claude Code, `Agent` tool | `model: "haiku"` | `model: "sonnet"` | omit `model` and `effort`: both inherit the session's (unless `CLAUDE_CODE_SUBAGENT_MODEL` is set) | `effort` per call (`2.1.292`+), or `effort:` in `.claude/agents/*.md` | token count in each subagent's result; `/usage` |
 | Cursor | subagent in `.cursor/agents/<name>.md` with `model: fast` or a small model ID | same file, a mid model ID | `model: inherit` | not documented | usage dashboard, per request |
 | Codex CLI | subagent TOML in `.codex/agents/` with `model` | same, a mid model | omit `model` | `model_reasoning_effort` | not checked |
 | Gemini CLI, GitHub Copilot, OpenCode | subagent definition with a `model` field | same, a mid model | omit it, or `inherit` | not documented | not checked |
