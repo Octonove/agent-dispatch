@@ -1,0 +1,12 @@
+{
+  "name": "agent-dispatch",
+  "description": "Decides whether to delegate to subagents, how many, and which model and effort each one gets.",
+  "author": {
+    "name": "Octonove",
+    "url": "https://github.com/Octonove"
+  },
+  "homepage": "https://github.com/Octonove/agent-dispatch",
+  "repository": "https://github.com/Octonove/agent-dispatch",
+  "license": "MIT",
+  "keywords": ["subagents", "delegation", "model-routing", "cost"]
+}

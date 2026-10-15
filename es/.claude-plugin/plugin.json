@@ -1,0 +1,12 @@
+{
+  "name": "agent-dispatch-es",
+  "description": "Decide si delegar en subagentes, cuántos y qué modelo y esfuerzo lleva cada uno.",
+  "author": {
+    "name": "Octonove",
+    "url": "https://github.com/Octonove"
+  },
+  "homepage": "https://github.com/Octonove/agent-dispatch",
+  "repository": "https://github.com/Octonove/agent-dispatch",
+  "license": "MIT",
+  "keywords": ["subagentes", "delegación", "modelos", "coste"]
+}
