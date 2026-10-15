@@ -6,8 +6,8 @@
 
 Una skill gratuita y suelta que evita que todos tus subagentes corran con el modelo más grande.
 
-Salvo que la llamada o la definición del subagente fijen un modelo, Claude Code corre cada
-subagente en el modelo que tienes seleccionado para la sesión
+Salvo que la llamada, la definición del subagente o `CLAUDE_CODE_SUBAGENT_MODEL` fijen un
+modelo, Claude Code corre cada subagente en el modelo que tienes seleccionado para la sesión
 ([documentación](https://code.claude.com/docs/en/sub-agents)). Así que cuando una tarea se
 reparte, los agentes que traducen un `messages.json` cuestan lo mismo por token que el que diseña
 la arquitectura. Esta skill hace el reparto explícito antes de lanzar nada: **el modelo se elige
@@ -31,7 +31,7 @@ O en USDC. Env&iacute;a **solo USDC** y **solo por la red indicada**; por otra r
 |---|---|---|
 | **Mecánica** | traducir cadenas fijas, listar, contar, extraer campos con formato fijo, recortar un log largo a sus errores | **pequeño** (p. ej. Haiku) · bajo |
 | **Analítica acotada** | resumir un módulo, mapear dependencias, escribir tests a partir de una especificación clara, un cambio mecánico en muchos ficheros | **medio** (p. ej. Sonnet) · medio |
-| **Juicio** | arquitectura, escribir el código que decide cómo funciona algo, elegir entre opciones, la revisión final, lo que se entrega | **el modelo de la sesión** · alto |
+| **Juicio** | arquitectura, escribir el código que decide cómo funciona algo, elegir entre opciones, la revisión final, lo que se entrega | **el modelo de la sesión** · el de la sesión |
 
 Antes de todo eso hace la pregunta barata: **¿hay que delegar, y cuántos?** Por defecto no, y la
 cuenta empieza en cero: casi todo es trabajo en línea, y comprobar lo que comprueba un comando
@@ -48,8 +48,8 @@ ejecución **declara su reparto y su tope antes de lanzar y reporta el gasto med
 dice «sin medir». Nada de ahorros inventados.
 
 En Claude Code los niveles se traducen en parámetros de la propia herramienta `Agent`:
-`model: "haiku"` o `model: "sonnet"`, sin `model` para heredar el de la sesión, y `effort` por
-llamada (Claude Code 2.1.292 o posterior). Para otros clientes, mira
+`model: "haiku"` o `model: "sonnet"` con `effort` por llamada (Claude Code 2.1.292 o
+posterior), y ni `model` ni `effort` para el juicio, que así hereda los dos de la sesión. Para otros clientes, mira
 [los nombres de modelo por cliente](examples/decisions.es.md#nombres-de-modelo-por-cliente).
 
 ## Ejemplo trabajado: una extensión de Chrome pequeña
@@ -119,7 +119,9 @@ defecto: `claude plugin update agent-dispatch-es@agent-dispatch` trae el último
 
 **Compruébalo:** `/skills` la lista y `/agent-dispatch` la ejecuta a mano (instalada como plugin,
 lleva el espacio de nombres: `/agent-dispatch-es:agent-dispatch`). Una skill nueva se carga sin
-reiniciar; si `~/.claude/skills` no existía al empezar la sesión, ejecuta `/reload-skills`.
+reiniciar; si `~/.claude/skills` o el `.claude/skills` del proyecto no existían al empezar la
+sesión, ejecuta `/reload-skills`. Un plugin instalado o actualizado desde la terminal necesita
+`/reload-plugins` en una sesión ya abierta.
 
 **Que aplique siempre.** Una skill no está siempre activa: Claude Code solo mantiene su
 descripción en el contexto y carga el cuerpo cuando la descripción encaja con lo que pides
@@ -145,8 +147,9 @@ O como regla aplicada en cada petición, que entonces paga el fichero entero cad
 
 ```bash
 mkdir -p .cursor/rules
+body=$(curl -fsSL https://raw.githubusercontent.com/Octonove/agent-dispatch/main/es/SKILL.md) &&
 { printf '%s\n' '---' 'description: Antes de lanzar subagentes, decide si delegar, cuántos y qué modelo lleva cada uno' 'alwaysApply: true' '---'
-  curl -fsSL https://raw.githubusercontent.com/Octonove/agent-dispatch/main/es/SKILL.md | awk 'n >= 2; /^---$/ { n++ }'
+  printf '%s\n' "$body" | awk 'n >= 2; /^---$/ { n++ }'
 } > .cursor/rules/agent-dispatch.mdc
 ```
 
@@ -177,7 +180,7 @@ cada fabricante y no se han probado aquí.
 
 ## Qué te da y qué no
 
-- Te da una línea como `Despacho: 5 agentes · 1 medio · 4 pequeños · en línea: diseño, código, revisión · tope: 1 ronda`
+- Te da una línea como `Despacho: 5 agentes · 1 medio · 4 pequeños · en línea: diseño, código, revisión · tope: 1 ronda de corrección`
   antes de que corra nada, y el gasto que reporte la herramienta al terminar.
 - **No** te da una cifra de ahorro. No puede medir lo que tu herramienta no reporta, y se niega a
   inventarla. Mide tus propias ejecuciones: de eso va.
@@ -185,10 +188,11 @@ cada fabricante y no se han probado aquí.
 
 ## Contribuir
 
-`python3 scripts/check.py` ejecuta las comprobaciones que hace la CI en cada push y pull request:
-frontmatter válido; las mismas secciones, reglas y cifras en inglés y en español; enlaces
-internos que funcionan; `SKILL.md` por debajo de su límite de longitud; y los manifiestos del
-plugin. Cambia los dos idiomas en el mismo commit.
+`python3 scripts/check.py` ejecuta las comprobaciones del repositorio que hace la CI en cada pull
+request y en cada push a `main`: frontmatter válido; las mismas secciones, reglas y cifras en
+inglés y en español; enlaces internos que funcionan; `SKILL.md` por debajo de su límite de
+longitud; y los manifiestos del plugin. La CI además ejecuta `claude plugin validate .` y
+`claude plugin validate es`. Cambia los dos idiomas en el mismo commit.
 
 ## Relacionado
 

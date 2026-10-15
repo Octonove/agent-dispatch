@@ -6,8 +6,9 @@
 
 A free, standalone skill that stops every subagent from running on your biggest model.
 
-Unless the call or the subagent's definition sets a model, Claude Code runs every subagent on the
-model you selected for the session ([docs](https://code.claude.com/docs/en/sub-agents)). So when a
+Unless the call, the subagent's definition or `CLAUDE_CODE_SUBAGENT_MODEL` sets a model, Claude
+Code runs every subagent on the model you selected for the session
+([docs](https://code.claude.com/docs/en/sub-agents)). So when a
 task fans out, the agents that translate a `messages.json` cost the same per token as the one
 that designs the architecture. This skill makes the split explicit before anything launches:
 **the model is picked by the type of task, never by the importance of the project.**
@@ -30,7 +31,7 @@ Or in USDC. Send **USDC only** and **only on the network shown**; on any other n
 |---|---|---|
 | **Mechanical** | translations of fixed strings, listing, counting, extracting fields in a fixed format, cutting a long log down to its errors | **small** (e.g. Haiku) · low |
 | **Bounded analysis** | summarizing a module, mapping dependencies, writing tests from a clear spec, one mechanical change across many files | **mid** (e.g. Sonnet) · medium |
-| **Judgment** | architecture, writing the code that decides how something works, choosing between options, the final review, anything that ships | **the session's model** · high |
+| **Judgment** | architecture, writing the code that decides how something works, choosing between options, the final review, anything that ships | **the session's model** · the session's |
 
 Before any of that it asks the cheaper question first: **should this be delegated at all, and how
 many?** The default is no, and the count starts at zero: most work is inline work, and checking
@@ -47,8 +48,8 @@ that, every run **declares its split and its cap before launching and reports th
 after**, or says "not measured". No invented savings.
 
 In Claude Code the tiers map to the `Agent` tool's own parameters: `model: "haiku"` or
-`model: "sonnet"`, no `model` to inherit the session's, and `effort` per call (Claude Code
-2.1.292 or later). For other clients, see
+`model: "sonnet"` with `effort` per call (Claude Code 2.1.292 or later), and neither `model` nor
+`effort` for judgment, so it inherits both from the session. For other clients, see
 [the model names per client](examples/decisions.md#model-names-per-client).
 
 ## Worked example: a small Chrome extension
@@ -118,7 +119,9 @@ is `agent-dispatch-es@agent-dispatch`. Third-party marketplaces do not auto-upda
 
 **Check it:** `/skills` lists it and `/agent-dispatch` runs it by hand (installed as a plugin, the
 skill is namespaced: `/agent-dispatch:agent-dispatch`). A new skill is picked up without a
-restart; if `~/.claude/skills` did not exist when the session started, run `/reload-skills`.
+restart; if `~/.claude/skills` or the project's `.claude/skills` did not exist when the session
+started, run `/reload-skills`. A plugin installed or updated from the shell needs
+`/reload-plugins` in a session that is already open.
 
 **Make it apply every time.** A skill is not always on: Claude Code keeps only its description in
 context and loads the body when the description matches what you asked
@@ -144,8 +147,9 @@ Or as a rule applied to every request, which then pays for the whole file every 
 
 ```bash
 mkdir -p .cursor/rules
+body=$(curl -fsSL https://raw.githubusercontent.com/Octonove/agent-dispatch/main/SKILL.md) &&
 { printf '%s\n' '---' 'description: Before launching subagents, decide whether to delegate, how many, and which model each one gets' 'alwaysApply: true' '---'
-  curl -fsSL https://raw.githubusercontent.com/Octonove/agent-dispatch/main/SKILL.md | awk 'n >= 2; /^---$/ { n++ }'
+  printf '%s\n' "$body" | awk 'n >= 2; /^---$/ { n++ }'
 } > .cursor/rules/agent-dispatch.mdc
 ```
 
@@ -183,9 +187,10 @@ and are untested here.
 
 ## Contributing
 
-`python3 scripts/check.py` runs the checks that CI runs on every push and pull request: valid
-frontmatter; the same sections, rules and numbers in English and Spanish; working internal links;
-`SKILL.md` under its length limit; and the plugin manifests. Change both languages in the same
+`python3 scripts/check.py` runs the repository checks that CI runs on pull requests and on pushes
+to `main`: valid frontmatter; the same sections, rules and numbers in English and Spanish; working
+internal links; `SKILL.md` under its length limit; and the plugin manifests. CI also runs
+`claude plugin validate .` and `claude plugin validate es`. Change both languages in the same
 commit.
 
 ## Related
