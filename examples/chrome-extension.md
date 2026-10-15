@@ -1,9 +1,9 @@
 # Worked example: a small Chrome extension, dispatched
 
-This is the example the skill uses, step by step: what the user asked, how the work was split,
-which model each subagent got and why, what each one was told, and what the final review
-checked. The numbers of agents are real for this plan; the token spend is whatever your tool
-reports for your run — the skill never fills that in for you.
+This is the example the skill uses, step by step: which subtasks stay inline and why, which ones
+are delegated and to which model, what each delegated agent is told, and what the final review
+checks. The number of agents is the plan's; the token spend is whatever your client reports for
+your run. The skill never fills it in for you.
 
 ## The prompt
 
@@ -11,80 +11,94 @@ reports for your run — the skill never fills that in for you.
 > Popup with a currency selector. UI in English, translated into Spanish, French, German and
 > Italian. Tests for the conversion.
 
-## Step 0 — delegate at all?
+## Step 1 — delegate at all?
 
-Yes, on the first criterion: there are independent parts (four translations, a test file, a
-lint/test run) that can run in parallel and do not need to see the conversation. Design and code
-could be done inline; in this plan they are delegated because the user wants the run measured.
+Partly. Design and code are one chain: the code depends on the design and both are judgment, so
+they stay inline on the session's model. Once the code exists, five parts are independent and can
+run at the same time: the conversion tests and the four translations. Lint and tests are a
+command, and the session runs it itself: a command that checks something is never a reason to
+delegate.
 
-## Step 1 — the split, classified by type
+## Step 2 — how many?
 
-| # | Subtask | Type | Why this type |
-|---|---|---|---|
-| 1 | Design: manifest v3, file layout, permissions (`activeTab`, `storage`), how the content script and the popup exchange the selected currency | judgment | every later decision depends on it |
-| 2 | Write the code: content script (find prices, wrap them), popup (selector, saves to `chrome.storage`), service worker, `convert.js` | judgment | code that decides how the thing works |
-| 3 | Write `convert.test.js` from the spec of `convert.js` (input formats, rounding, unknown currency) | bounded analysis | the frame is set; the work is inside it |
-| 4–7 | Translate `_locales/en/messages.json` into ES, FR, DE, IT — one agent per language | mechanical | fixed strings, output easy to check |
-| 8 | Validate `manifest.json`, run `npm run lint` and `npm test`, report the output verbatim | mechanical | run and report, no judgment |
-| 9 | Final review: every key in `en` exists in the four locales, permissions in the manifest match what the code calls, tests green, nothing skipped | judgment | it ships after this |
+Five, one slice each: one test file and one locale per translator. No second reviewer and no
+translator "just in case".
 
-## Step 2 — model and effort per subtask
+## Step 3 — the split, classified by type
 
-| Subtasks | Model · effort |
-|---|---|
-| 1, 2, 9 | session's model (Fable 5.1 in my case) · high |
-| 3 | Sonnet · medium |
-| 4, 5, 6, 7, 8 | Haiku · low |
+| # | Subtask | Type | Where it runs | Why |
+|---|---|---|---|---|
+| 1 | Design: manifest v3, file layout, permissions (`activeTab`, `storage`), how the content script and the popup share the selected currency | judgment | inline | every later decision depends on it |
+| 2 | Code: content script (find prices, wrap them), popup (selector, saves to `chrome.storage`), service worker, `convert.js` | judgment | inline | code that decides how the thing works |
+| 3 | `test/convert.test.js` from the spec of `convert.js` | bounded analysis | 1 agent | the frame is set; it runs while the translations run |
+| 4–7 | Translate `_locales/en/messages.json` into ES, FR, DE, IT | mechanical | 4 agents, one per language | fixed strings, output easy to check |
+| 8 | Validate `manifest.json`, run `npm run lint` and `npm test` | mechanical | inline | a command checks it and the output is short |
+| 9 | Final review: locales complete, permissions match the code, tests green, nothing skipped | judgment | inline | it ships after this |
 
-## Step 4 — the declaration, before launching
+## Step 4 — model and effort
+
+| Subtasks | Model · effort | Claude Code `Agent` call |
+|---|---|---|
+| 1, 2, 8, 9 | session's model, inline | none |
+| 3 | mid · medium | `model: "sonnet"`, `effort: "medium"` |
+| 4–7 | small · low | `model: "haiku"`, `effort: "low"` |
+
+## Step 5 — guardrails and cap
+
+- One fix round after the final review. A finding still open after it is parked as debt or
+  rejected with a reason; no second round opens.
+- A translator that breaks a placeholder gets its one retry on the mid model, not another run on
+  the small one. If that fails too, the locale is done inline.
+
+## Step 6 — the declaration, before launching
 
 ```
-Dispatch: 9 agents · 3 session-tier (design, code, final review) · 1 mid (tests) · 5 small (4 translations, lint + tests run)
+Dispatch: 5 agents · 1 mid (tests) · 4 small (translations) · inline: design, code, lint + tests, final review · cap: 1 fix round
 ```
 
-## What each agent is told (briefing + return contract)
+## What each delegated agent is told
 
-Every subagent starts with an empty context. It gets the paths it needs, the spec, and a
-return contract. Examples:
+Every subagent starts with an empty context. Its brief carries the six things the skill asks for:
+goal, context, constraints, review focus, output and definition of done.
 
-**Translator (small, ×4)**
-> Translate the values of `_locales/en/messages.json` into French. Keep every key, keep
-> placeholders like `$AMOUNT$` untouched, keep the same JSON shape. Write the result to
-> `_locales/fr/messages.json`. Return: the path you wrote, the number of keys, and any string
-> you were not sure about (max 5).
+**Translator (small, ×4; French shown)**
 
-**Lint + tests (small)**
-> Run `npm run lint` and `npm test` in the repo root. Do not fix anything. Return: exit codes,
-> the last 30 lines of each output verbatim, and the path of any file the tools flagged.
+> - **Goal:** translate the values of `_locales/en/messages.json` into French.
+> - **Context:** UI strings of a Chrome extension; the code reads them by key, and placeholders like
+>   `$AMOUNT$` are filled at run time.
+> - **Constraints:** do not change keys, placeholders or the JSON shape; write only
+>   `_locales/fr/messages.json`.
+> - **Review focus:** the reviewer will compare the key set and the placeholders with `en`.
+> - **Output:** the path you wrote, the number of keys, and at most 5 strings you were unsure about.
+> - **Done:** the file parses as JSON and has exactly the keys of `en`.
 
-**Tests from spec (mid)**
-> `src/convert.js` exports `convert(amount, from, to, rates)`. Spec: amounts may carry
-> thousands separators and either decimal comma or point; result rounded to 2 decimals; unknown
-> currency throws. Write `test/convert.test.js` covering each rule and two edge cases. Return:
-> the path and the list of cases, one line each.
+**Tests from the spec (mid)**
 
-**Final review (session model)**
-> Check that the extension fits together: every key in `_locales/en/messages.json` exists in
-> `es`, `fr`, `de`, `it`; every permission in `manifest.json` is used by the code and nothing the
-> code calls is missing a permission; the tests the lint agent ran are the ones in `test/`;
-> report anything skipped. Return: VERDICT pass/fail, at most 5 findings with file and line,
-> one NEXT action.
+> - **Goal:** write `test/convert.test.js` for `src/convert.js`.
+> - **Context:** `convert(amount, from, to, rates)`. Amounts may carry thousands separators and a
+>   decimal comma or point; the result is rounded to 2 decimals; an unknown currency throws.
+> - **Constraints:** do not edit `src/` and do not add dependencies.
+> - **Review focus:** one test per rule plus two edge cases; no test that just restates the code.
+> - **Output:** the path and the list of cases, one line each.
+> - **Done:** `npm test` runs the file; failing tests are reported, not fixed.
 
-## Step 5 — the final review
+## Step 7 — the final review, inline
 
-The reviewer is the only agent that sees the whole thing at once. In this plan it is where the
-five small agents' work gets verified, by someone who can tell a missing key from a bad
-translation. It is never cheapened: the saving is in the translators and the test runner, not
-here.
+Every key in `_locales/en/messages.json` exists in `es`, `fr`, `de` and `it` with the same
+placeholders; every permission in `manifest.json` is used by the code and nothing the code calls
+is missing one; the tests that ran are the ones in `test/`; nothing was skipped. The result is a
+verdict (pass or fail), at most 5 findings with file and line, and one next action. This is where
+the five agents' work is verified, once, by someone who can tell a missing key from a bad
+translation.
 
 ## After the run — measure
 
-Report the spend the tool gives back, split small vs large. If it gives none, write
-"not measured". The skill's own line at the end of a run looks like:
+Report the spend per tier as the client gives it back. In Claude Code each subagent's result
+carries its token count, and `/usage` shows usage by model. With no figure, write
+"not measured":
 
 ```
-Spend: 5 small · 1 mid · 3 session-tier — figures as reported by the tool, or "not measured"
+Spend: 1 mid · 4 small — tokens as the client reports them, or "not measured"
 ```
 
-Without the skill, the same nine agents run on the session's model. With it, five of them do
-not. The extension is the same.
+The plan promises no saving. The line after the run is the only number that counts.
