@@ -4,8 +4,8 @@
 1. Frontmatter: SKILL.md and es/SKILL.md are valid YAML with a valid name and description.
 2. EN/ES parity: every English doc has a Spanish twin with the same structure (headings,
    tables, lists, code blocks). For SKILL.md also the same numbered headings, inline code
-   and numbers in each section, so a rule changed in one language fails until the other
-   follows.
+   and numbers (in prose and in code blocks) in each section, so a rule changed in one
+   language fails until the other follows.
 3. Links: every relative link, image, anchor and absolute link into this repository resolves
    (Markdown, HTML and the URLs inside code blocks, such as the install commands).
 4. Length: SKILL.md stays under the word limit, so loading it does not eat the context.
@@ -72,7 +72,7 @@ def split_frontmatter(text: str) -> tuple[str | None, str]:
 def sections(body: str) -> list[dict]:
     """Split a Markdown body into sections, one per heading, with a structural summary."""
     out: list[dict] = []
-    cur = {"heading": "(top)", "level": 0, "lines": [], "code": []}
+    cur = {"heading": "(top)", "level": 0, "lines": [], "code": [], "code_text": []}
     in_fence = False
     fence_lines = 0
     for line in body.splitlines():
@@ -83,11 +83,13 @@ def sections(body: str) -> list[dict]:
             continue
         if in_fence:
             fence_lines += 1
+            cur["code_text"].append(line)
             continue
         m = HEADING_RE.match(line)
         if m:
             out.append(cur)
-            cur = {"heading": m.group(2), "level": len(m.group(1)), "lines": [], "code": []}
+            cur = {"heading": m.group(2), "level": len(m.group(1)), "lines": [], "code": [],
+                   "code_text": []}
             continue
         cur["lines"].append(line)
     out.append(cur)
@@ -135,7 +137,7 @@ def inline_code(text: str) -> Counter:
 
 
 def numbers(text: str) -> Counter:
-    # Numbers in prose (outside inline code), digits only: "at most 5 findings".
+    # Numbers outside inline code, digits only: "at most 5 findings", "cap: 1 fix round".
     return Counter(NUMBER_RE.findall(INLINE_CODE_RE.sub(" ", text)))
 
 
@@ -215,7 +217,8 @@ def check_parity(en: str, es: str, strict: bool) -> None:
             only_en = sorted((code_a - code_b).elements())
             only_es = sorted((code_b - code_a).elements())
             error(es, f"{where}: inline code differs; only in EN {only_en}, only in ES {only_es}")
-        num_a, num_b = numbers(prose(a)), numbers(prose(b))
+        num_a = numbers(prose(a) + "\n" + "\n".join(a["code_text"]))
+        num_b = numbers(prose(b) + "\n" + "\n".join(b["code_text"]))
         if num_a != num_b:
             error(es, f"{where}: numbers differ; only in EN {sorted((num_a - num_b).elements())}, "
                       f"only in ES {sorted((num_b - num_a).elements())}")
@@ -271,7 +274,8 @@ def check_links(rel: str) -> int:
         count += 1
         if not (ROOT / url.split("#")[0].split("?")[0]).exists():
             error(rel, f"link into this repository points to a missing file: {url}")
-    body = "\n".join(line for sec in sections(text) for line in sec["lines"])
+    body = "\n".join(line for sec in sections(text)  # headings can hold links too
+                     for line in ([sec["heading"]] if sec["level"] else []) + sec["lines"])
     body = INLINE_CODE_RE.sub(" ", body)
     for target in MD_LINK_RE.findall(body) + HTML_LINK_RE.findall(body) + REF_LINK_RE.findall(body):
         count += 1
