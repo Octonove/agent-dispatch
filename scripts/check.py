@@ -217,11 +217,14 @@ def check_parity(en: str, es: str, strict: bool) -> None:
             only_en = sorted((code_a - code_b).elements())
             only_es = sorted((code_b - code_a).elements())
             error(es, f"{where}: inline code differs; only in EN {only_en}, only in ES {only_es}")
-        num_a = numbers(prose(a) + "\n" + "\n".join(a["code_text"]))
-        num_b = numbers(prose(b) + "\n" + "\n".join(b["code_text"]))
-        if num_a != num_b:
-            error(es, f"{where}: numbers differ; only in EN {sorted((num_a - num_b).elements())}, "
-                      f"only in ES {sorted((num_b - num_a).elements())}")
+        # Prose and code blocks apart, so a change in one cannot cancel a change in the other.
+        for what, text_a, text_b in (("numbers", prose(a), prose(b)),
+                                     ("numbers in code blocks", "\n".join(a["code_text"]),
+                                      "\n".join(b["code_text"]))):
+            num_a, num_b = numbers(text_a), numbers(text_b)
+            if num_a != num_b:
+                error(es, f"{where}: {what} differ; only in EN {sorted((num_a - num_b).elements())}, "
+                          f"only in ES {sorted((num_b - num_a).elements())}")
 
 
 # --- 3. Links --------------------------------------------------------------------------
