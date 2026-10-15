@@ -1,9 +1,9 @@
 # Ejemplo trabajado: una extensión de Chrome pequeña, despachada
 
-Es el ejemplo que usa la skill, paso a paso: qué pidió el usuario, cómo se repartió el trabajo,
-qué modelo recibió cada subagente y por qué, qué se le dijo a cada uno y qué comprobó la revisión
-final. El número de agentes es real para este plan; el gasto en tokens es el que reporte tu
-herramienta en tu ejecución: la skill nunca lo rellena por ti.
+Es el ejemplo que usa la skill, paso a paso: qué subtareas se quedan en línea y por qué, cuáles
+se delegan y a qué modelo, qué se le dice a cada agente delegado y qué comprueba la revisión
+final. El número de agentes es el del plan; el gasto en tokens es el que reporte tu cliente en tu
+ejecución. La skill nunca lo rellena por ti.
 
 ## El prompt
 
@@ -11,82 +11,99 @@ herramienta en tu ejecución: la skill nunca lo rellena por ti.
 > a euros. Popup con selector de moneda. Interfaz en inglés, traducida a español, francés, alemán
 > e italiano. Tests para la conversión.
 
-## Paso 0 — ¿hay que delegar?
+## Paso 1 — ¿hay que delegar?
 
-Sí, por el primer motivo: hay partes independientes (cuatro traducciones, un fichero de tests, una
-pasada de lint y tests) que pueden correr en paralelo y no necesitan ver la conversación. Diseño
-y código podrían hacerse en línea; en este plan se delegan porque el usuario quiere medir la
-ejecución.
+En parte. Diseño y código son una misma cadena: el código depende del diseño y los dos son
+juicio, así que se quedan en línea en el modelo de la sesión. Cuando el código existe, hay cinco
+partes independientes que pueden correr a la vez: los tests de conversión y las cuatro
+traducciones. Lint y tests son un comando, y lo ejecuta la propia sesión: un comando que
+comprueba algo nunca es razón para delegar.
 
-## Paso 1 — el reparto, clasificado por tipo
+## Paso 2 — ¿cuántos?
 
-| # | Subtarea | Tipo | Por qué ese tipo |
-|---|---|---|---|
-| 1 | Diseño: manifest v3, estructura de ficheros, permisos (`activeTab`, `storage`), cómo se pasan el content script y el popup la moneda elegida | juicio | todas las decisiones posteriores dependen de esto |
-| 2 | Escribir el código: content script (encontrar precios, envolverlos), popup (selector, guarda en `chrome.storage`), service worker, `convert.js` | juicio | código que decide cómo funciona la cosa |
-| 3 | Escribir `convert.test.js` a partir de la especificación de `convert.js` (formatos de entrada, redondeo, moneda desconocida) | analítica acotada | el marco está puesto; el trabajo es dentro de él |
-| 4–7 | Traducir `_locales/en/messages.json` a ES, FR, DE, IT — un agente por idioma | mecánica | cadenas fijas, resultado fácil de comprobar |
-| 8 | Validar `manifest.json`, pasar `npm run lint` y `npm test`, reportar la salida literal | mecánica | ejecutar y reportar, sin juicio |
-| 9 | Revisión final: cada clave de `en` existe en los cuatro idiomas, los permisos del manifest coinciden con lo que llama el código, tests en verde, nada saltado | juicio | después de esto se entrega |
+Cinco, cada uno con su parcela: un fichero de tests y un idioma por traductor. Ni un segundo
+revisor ni un traductor «por si acaso».
 
-## Paso 2 — modelo y esfuerzo por subtarea
+## Paso 3 — el reparto, clasificado por tipo
 
-| Subtareas | Modelo · esfuerzo |
-|---|---|
-| 1, 2, 9 | modelo de la sesión (Fable 5.1 en mi caso) · alto |
-| 3 | Sonnet · medio |
-| 4, 5, 6, 7, 8 | Haiku · bajo |
+| # | Subtarea | Tipo | Dónde corre | Por qué |
+|---|---|---|---|---|
+| 1 | Diseño: manifest v3, estructura de ficheros, permisos (`activeTab`, `storage`), cómo se pasan el content script y el popup la moneda elegida | juicio | en línea | todas las decisiones posteriores dependen de esto |
+| 2 | Código: content script (encontrar precios, envolverlos), popup (selector, guarda en `chrome.storage`), service worker, `convert.js` | juicio | en línea | código que decide cómo funciona la cosa |
+| 3 | `test/convert.test.js` a partir de la especificación de `convert.js` | analítica acotada | 1 agente | el marco está puesto; corre mientras corren las traducciones |
+| 4–7 | Traducir `_locales/en/messages.json` a ES, FR, DE, IT | mecánica | 4 agentes, uno por idioma | cadenas fijas, resultado fácil de comprobar |
+| 8 | Validar `manifest.json`, pasar `npm run lint` y `npm test` | mecánica | en línea | lo comprueba un comando y la salida es corta |
+| 9 | Revisión final: idiomas completos, permisos coherentes con el código, tests en verde, nada saltado | juicio | en línea | después de esto se entrega |
 
-## Paso 4 — la declaración, antes de lanzar
+## Paso 4 — modelo y esfuerzo
+
+| Subtareas | Modelo · esfuerzo | Llamada a `Agent` en Claude Code |
+|---|---|---|
+| 1, 2, 8, 9 | modelo de la sesión, en línea | ninguna |
+| 3 | medio · medio | `model: "sonnet"`, `effort: "medium"` |
+| 4–7 | pequeño · bajo | `model: "haiku"`, `effort: "low"` |
+
+## Paso 5 — salvaguardas y tope
+
+- Una ronda de corrección tras la revisión final. Un hallazgo que siga abierto después se aparca
+  como deuda o se rechaza con motivo; no se abre una segunda ronda.
+- Un traductor que rompe un marcador recibe su único reintento en el modelo medio, no otra pasada
+  en el pequeño. Si también falla, ese idioma se hace en línea.
+
+## Paso 6 — la declaración, antes de lanzar
 
 ```
-Despacho: 9 agentes · 3 de sesión (diseño, código, revisión final) · 1 medio (tests) · 5 pequeños (4 traducciones, lint + tests)
+Despacho: 5 agentes · 1 medio (tests) · 4 pequeños (traducciones) · en línea: diseño, código, lint + tests, revisión final · tope: 1 ronda de corrección
 ```
 
-## Qué se le dice a cada agente (briefing + contrato de retorno)
+## Qué se le dice a cada agente delegado
 
-Cada subagente arranca con el contexto vacío. Recibe las rutas que necesita, la especificación y
-un contrato de retorno. Ejemplos:
+Cada subagente arranca con el contexto vacío. Su encargo lleva las seis cosas que pide la skill:
+objetivo, contexto, restricciones, foco de revisión, salida y criterio de terminado.
 
-**Traductor (pequeño, ×4)**
-> Traduce los valores de `_locales/en/messages.json` al francés. Conserva todas las claves,
-> no toques los marcadores como `$AMOUNT$`, mantén la misma forma del JSON. Escribe el resultado
-> en `_locales/fr/messages.json`. Devuelve: la ruta escrita, el número de claves y las cadenas de
-> las que no estés seguro (máximo 5).
+**Traductor (pequeño, ×4; se muestra el francés)**
 
-**Lint + tests (pequeño)**
-> Ejecuta `npm run lint` y `npm test` en la raíz del repo. No arregles nada. Devuelve: códigos de
-> salida, las últimas 30 líneas de cada salida tal cual, y la ruta de cualquier fichero que las
-> herramientas señalen.
+> - **Objetivo:** traduce los valores de `_locales/en/messages.json` al francés.
+> - **Contexto:** cadenas de la interfaz de una extensión de Chrome; el código las lee por clave, y
+>   los marcadores como `$AMOUNT$` se rellenan al ejecutar.
+> - **Restricciones:** no cambies claves, marcadores ni la forma del JSON; escribe solo
+>   `_locales/fr/messages.json`.
+> - **Foco de revisión:** quien revise comparará el conjunto de claves y los marcadores con `en`.
+> - **Salida:** un veredicto (hecho o bloqueado), la ruta escrita, el número de claves y como
+>   mucho 5 cadenas de las que no estés seguro.
+> - **Terminado:** el fichero parsea como JSON y tiene exactamente las claves de `en`.
 
 **Tests desde la especificación (medio)**
-> `src/convert.js` exporta `convert(amount, from, to, rates)`. Especificación: los importes pueden
-> llevar separador de miles y coma o punto decimal; el resultado se redondea a 2 decimales; una
-> moneda desconocida lanza error. Escribe `test/convert.test.js` cubriendo cada regla y dos casos
-> límite. Devuelve: la ruta y la lista de casos, uno por línea.
 
-**Revisión final (modelo de sesión)**
-> Comprueba que la extensión encaja: cada clave de `_locales/en/messages.json` existe en `es`,
-> `fr`, `de`, `it`; cada permiso de `manifest.json` lo usa el código y nada de lo que llama el
-> código se queda sin permiso; los tests que pasó el agente de lint son los de `test/`; reporta
-> cualquier cosa saltada. Devuelve: VEREDICTO pasa/no pasa, como mucho 5 hallazgos con fichero y
-> línea, una acción SIGUIENTE.
+> - **Objetivo:** escribe `test/convert.test.js` para `src/convert.js`.
+> - **Contexto:** `convert(amount, from, to, rates)`. Los importes pueden llevar separador de miles
+>   y coma o punto decimal; el resultado se redondea a 2 decimales; una moneda desconocida lanza
+>   error.
+> - **Restricciones:** no edites `src/` ni añadas dependencias.
+> - **Foco de revisión:** un test por regla más dos casos límite; ningún test que solo repita el
+>   código.
+> - **Salida:** un veredicto (todo pasa, o cuántos fallan), la ruta y la lista de casos, uno por
+>   línea; como mucho 5 tests que fallan, con fichero y línea.
+> - **Terminado:** `npm test` ejecuta el fichero; los tests que fallen se reportan, no se arreglan.
 
-## Paso 5 — la revisión final
+## Paso 7 — la revisión final, en línea
 
-El revisor es el único agente que ve el conjunto a la vez. En este plan es donde se verifica el
-trabajo de los cinco agentes pequeños, por alguien que distingue una clave que falta de una mala
-traducción. Nunca se abarata: el ahorro está en los traductores y en el que pasa los tests, no
-aquí.
+Cada clave de `_locales/en/messages.json` existe en `es`, `fr`, `de` e `it` con los mismos
+marcadores; cada permiso de `manifest.json` lo usa el código y nada de lo que llama el código se
+queda sin permiso; los tests que se pasaron son los de `test/`; nada se saltó. El resultado es un
+veredicto (pasa o no pasa), como mucho 5 hallazgos con fichero y línea, y una acción siguiente.
+Aquí se verifica, una vez y por alguien que distingue una clave que falta de una mala traducción,
+el trabajo de los cinco agentes.
 
 ## Después de la ejecución — medir
 
-Reporta el gasto que devuelva la herramienta, separando pequeños y grandes. Si no da ninguno,
-escribe «sin medir». La línea de la skill al final de una ejecución es así:
+Reporta el gasto por nivel tal como lo devuelva el cliente. En Claude Code, el resultado de cada
+subagente trae su recuento de tokens, y `/usage` muestra el uso por modelo. Si no hay cifra,
+escribe «sin medir»:
 
 ```
-Gasto: 5 pequeños · 1 medio · 3 de sesión — cifras tal como las reporta la herramienta, o «sin medir»
+Gasto: 1 medio · 4 pequeños — tokens tal como los reporta el cliente, o «sin medir»
 ```
 
-Sin la skill, los mismos nueve agentes corren en el modelo de la sesión. Con ella, cinco no. La
-extensión es la misma.
+El plan no promete ningún ahorro. La línea de después de la ejecución es la única cifra que
+cuenta.
