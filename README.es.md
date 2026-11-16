@@ -198,7 +198,7 @@ longitud; y los manifiestos del plugin. La CI además ejecuta `claude plugin val
 
 ## Relacionado
 
-- **[Invokard](https://invokard.web.app)** — «cartas» de habilidades para Claude y cualquier
+- **[Invokard](https://invokard.com/es/invokard)** — «cartas» de habilidades para Claude y cualquier
   cliente MCP. Esta regla es la sección 1G de **El Orquestador**, la carta gratuita que enruta
   cada petición al especialista correcto; si usas esa carta, el despacho ya va dentro.
 - **[CRBRO](https://github.com/Octonove/crbro-memory)** — un servidor MCP de código abierto que

@@ -197,7 +197,7 @@ commit.
 
 ## Related
 
-- **[Invokard](https://invokard.web.app)** — skill "cards" for Claude and any MCP client. This
+- **[Invokard](https://invokard.com/invokard)** — skill "cards" for Claude and any MCP client. This
   rule is section 1G of **The Orchestrator**, the free card that routes every request to the
   right specialist; if you use that card, the dispatch is already inside it.
 - **[CRBRO](https://github.com/Octonove/crbro-memory)** — an open-source MCP server that gives
